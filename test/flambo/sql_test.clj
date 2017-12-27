@@ -22,7 +22,8 @@
            test-df-2 (sql/json-rdd c (f/parallelize sc test-data-2))
            _ (sql/register-data-frame-as-table c test-df "foo")
            _ (sql/register-data-frame-as-table c test-df-2 "bar")
-           _ (-> c .udf (.register "UC" (func/udf (f/fn [x] (.toUpperCase x))) DataTypes/StringType))]
+           _ (-> c .udf (.register "UC" (func/udf1 (f/fn [x] (.toUpperCase x))) DataTypes/StringType))
+           _ (-> c .udf (.register "UC_A" (func/udf [x y] (str x "-" y)) DataTypes/StringType))]
        (fact
          "with-sql-context gives us a SQLContext"
          (class c) => org.apache.spark.sql.SQLContext)
@@ -40,7 +41,9 @@
            (f/count (sql/sql c "SELECT * FROM foo WHERE col2 = 'a'")) => 2)
 
        (fact "SQL UDF queries work"
-          (f/count (sql/sql c "SELECT * FROM foo WHERE UC(col2) = 'A'")) => 2)
+             (f/count (sql/sql c "SELECT * FROM foo WHERE UC(col2) = 'A'")) => 2
+             (f/count (sql/sql c "SELECT * FROM foo WHERE UC_A(col1, col2) = '4-a'")) => 2)
+
 
        (fact "table-names gets all tables"
          (sql/table-names c) => (just ["foo" "bar"] :in-any-order))

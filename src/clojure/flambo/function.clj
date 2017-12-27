@@ -24,7 +24,26 @@
            [org.apache.spark.sql.api.java
             UDF1
             UDF2
-            UDF3]))
+            UDF3
+            UDF4
+            UDF5
+            UDF6
+            UDF7
+            UDF8
+            UDF9
+            UDF10
+            UDF11
+            UDF12
+            UDF13
+            UDF14
+            UDF15
+            UDF16
+            UDF17
+            UDF18
+            UDF19
+            UDF20
+            UDF21
+            UDF22]))
 
 (defn- serfn? [f]
   (= (type f) :serializable.fn/serializable-fn))
@@ -104,6 +123,18 @@
 (gen-function MapPartitionsFunction map-partitions-function)
 (gen-function MapGroupsFunction map-groups-function)
 (gen-function FlatMapGroupsFunction flat-map-groups-function)
-(gen-function UDF1 udf)
-(gen-function UDF2 udf2)
-(gen-function UDF3 udf3)
+
+(defmacro gen-all-udf-functions
+  []
+  (let [all-udfs# (mapv (fn [i#] (list `gen-function
+                                     (mk-sym "UDF%d" (inc i#))
+                                     (mk-sym "udf%d" (inc i#))))
+                       (range 22))]
+    `(do ~@all-udfs#)))
+
+(gen-all-udf-functions)
+
+(defmacro udf
+  [args & body]
+  (let [udf# (mk-sym "flambo.function/udf%d" (count args))]
+    `(~udf# (sfn/fn ~args ~@body))))
